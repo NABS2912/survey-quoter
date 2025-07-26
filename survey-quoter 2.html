@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Survey Quote Generator</title>
+  <style>
+    body { font-family: Calibri, Arial, sans-serif; padding: 20px; max-width: 900px; margin: auto; }
+    label { display: block; margin-top: 10px; }
+    input, select { width: 100%; padding: 8px; margin-top: 5px; }
+    .checkboxes label { display: inline-block; margin-right: 15px; }
+    .price-row { display: flex; gap: 10px; align-items: center; }
+    .price-row input { width: auto; flex: 1; }
+    #quote { white-space: pre-wrap; margin-top: 20px; background: #f4f4f4; padding: 15px; border: 1px solid #ccc; }
+    button { margin-top: 15px; padding: 10px 15px; }
+    .logo-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .logo-bar img { height: 60px; }
+    #statusMessage { margin-top: 15px; font-weight: bold; }
+  </style>
+  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+  <script>
+    (function() {
+      emailjs.init("6LBT_mSaHzf4Xqo_f");
+    })();
+  </script>
+</head>
+<body>
+  <div class="logo-bar">
+    <img src="https://i.imgur.com/Cg2xdgu.png" alt="NA Building Surveys Logo">
+    <img src="https://i.imgur.com/q6zVXxv.png" alt="RICS Logo">
+  </div>
+
+  <h1>Survey Quote Generator</h1>
+  <form id="surveyForm">
+    <label>Introducer Name: <input type="text" id="introducerName"></label>
+    <label>Introducer Email (optional): <input type="email" id="introducerEmail"></label>
+    <label>Client Name: <input type="text" id="clientName"></label>
+    <label>Email: <input type="email" id="email"></label>
+    <label>Phone: <input type="text" id="phone"></label>
+    <label>Property Address: <input type="text" id="address"></label>
+    <label>Postcode: <input type="text" id="postcode"></label>
+    <label>Year of Construction: <input type="text" id="yearBuilt"></label>
+    <label>Is the Property Listed?
+      <select id="listed">
+        <option value="No">No</option>
+        <option value="Yes">Yes</option>
+      </select>
+    </label>
+    <label>Conservation Area?
+      <select id="conservation">
+        <option value="No">No</option>
+        <option value="Yes">Yes</option>
+      </select>
+    </label>
+    <label>Property Type: <input type="text" id="propertyType"></label>
+    <label>Approx. Property Value: <input type="number" id="value"></label>
+    <label>Number of Bedrooms: <input type="number" id="bedrooms"></label>
+    <label>Recommended Survey:
+      <select id="recommended">
+        <option value="2">Level 2</option>
+        <option value="3">Level 3</option>
+      </select>
+    </label>
+    <label>Surveyors Availability / Proposed Survey Date: <input type="date" id="surveyDate"></label>
+    <label>Promo Code: <input type="text" id="promoCode"></label>
+
+    <div class="checkboxes">
+      <label><input type="checkbox" id="express"> Express Return (£125.00)</label>
+      <label><input type="checkbox" id="drone"> Drone Survey (£325.00)</label>
+    </div>
+
+    <div class="price-row">
+      <label>Level 2 Fee: <input type="number" id="level2Fee"></label>
+      <label>Level 3 Fee: <input type="number" id="level3Fee"></label>
+    </div>
+
+    <button type="button" onclick="generateQuote()">Generate Quote</button>
+    <button type="button" onclick="copyQuote()">Copy to Clipboard</button>
+    <button type="button" onclick="sendToNABS()">Send to NABS</button>
+  </form>
+
+  <div id="quote"></div>
+  <div id="statusMessage"></div>
+
+  <script>
+    function showStatus(message, isError = false) {
+      const statusEl = document.getElementById('statusMessage');
+      statusEl.textContent = message;
+      statusEl.style.color = isError ? 'red' : 'green';
+    }
+
+    function generateQuote() {
+      const name = document.getElementById('clientName').value;
+      const address = document.getElementById('address').value;
+      const value = parseFloat(document.getElementById('value').value) || 0;
+      const formattedValue = '£' + value.toLocaleString();
+      const level = document.getElementById('recommended').value;
+      const surveyDate = document.getElementById('surveyDate').value;
+      const express = document.getElementById('express').checked;
+      const drone = document.getElementById('drone').checked;
+      const promo = document.getElementById('promoCode').value;
+
+      const level2Fee = parseFloat(document.getElementById('level2Fee').value) || 0;
+      const level3Fee = parseFloat(document.getElementById('level3Fee').value) || 0;
+      const expressFee = 125;
+      const droneFee = 325;
+
+      let extraTotal = 0;
+      let extraServices = "";
+
+      if (express) {
+        extraServices += "- Express Return: £" + expressFee.toFixed(2) + "\\n";
+        extraTotal += expressFee;
+      }
+      if (drone) {
+        extraServices += "- Drone Survey: £" + droneFee.toFixed(2) + "\\n";
+        extraTotal += droneFee;
+      }
+
+      const recommendedFee = level === "2" ? level2Fee : level3Fee;
+      const altFee = level === "2" ? level3Fee : level2Fee;
+      let total = recommendedFee + extraTotal;
+
+      const quoteText = `Dear ${name},\\n\\nThank you for your enquiry regarding a Level ${level} Survey at ${address}.\\nBased on the property's age and condition, I recommend a Level ${level} survey, quoted at £${recommendedFee.toFixed(2)}.\\nAs an alternative, a Level ${level === "2" ? "3" : "2"} Survey is available at £${altFee.toFixed(2)}.\\n\\n${extraServices ? "Additional Services:\\n" + extraServices : ""}Total: £${total.toFixed(2)}\\n\\nSurveyors Availability / Proposed Survey Date: ${surveyDate}\\nReports returned within 5 working days of the survey (no extra charge).\\n\\nTerms: Payment to be made prior to the survey.\\n\\nThese prices are currently NOT subject to any VAT.`;
+
+      document.getElementById('quote').innerText = quoteText;
+      showStatus("Report is generated.");
+    }
+
+    function sendToNABS() {
+      const templateParams = {
+        client_name: document.getElementById('clientName').value,
+        client_email: document.getElementById('email').value,
+        client_phone: document.getElementById('phone').value,
+        property_address: document.getElementById('address').value,
+        postcode: document.getElementById('postcode').value,
+        year_built: document.getElementById('yearBuilt').value,
+        listed: document.getElementById('listed').value,
+        conservation: document.getElementById('conservation').value,
+        property_type: document.getElementById('propertyType').value,
+        value: '£' + Number(document.getElementById('value').value || 0).toLocaleString(),
+        bedrooms: document.getElementById('bedrooms').value,
+        recommended: document.getElementById('recommended').value,
+        survey_date: document.getElementById('surveyDate').value,
+        express: document.getElementById('express').checked ? 'Yes' : 'No',
+        drone: document.getElementById('drone').checked ? 'Yes' : 'No',
+        promo_code: document.getElementById('promoCode').value,
+        level2_fee: document.getElementById('level2Fee').value,
+        level3_fee: document.getElementById('level3Fee').value,
+        vat: "These prices are currently NOT subject to any VAT.",
+        quote_text: document.getElementById('quote').innerText,
+        introducer_name: document.getElementById('introducerName').value,
+        introducer_email: document.getElementById('introducerEmail').value
+      };
+
+      emailjs.send("service_jw9sh03", "template_66fyo7j", templateParams)
+        .then(() => showStatus("Report has been emailed to " + templateParams.client_email))
+        .catch(error => showStatus("Failed to send email: " + error.text, true));
+    }
+
+    function copyQuote() {
+      const quoteText = document.getElementById('quote').innerText;
+      navigator.clipboard.writeText(quoteText).then(() => {
+        showStatus("Quote copied to clipboard.");
+      });
+    }
+  </script>
+</body>
+</html>
