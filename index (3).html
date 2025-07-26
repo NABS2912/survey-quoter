@@ -1,0 +1,35 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Survey Quote Generator</title>
+  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      emailjs.init("6LBT_mSaHzf4Xqo_f");
+    });
+  </script>
+</head>
+<body>
+  <h1>Survey Quote Generator</h1>
+  <form id="quoteForm">
+    <label>Name: <input type="text" name="name" required></label><br>
+    <label>Email: <input type="email" name="email" required></label><br>
+    <label>Property Value (£000,000): <input type="text" name="value" required></label><br>
+    <label>Bedrooms: <input type="number" name="bedrooms" required></label><br>
+    <button type="submit">Send to NABS</button>
+  </form>
+  <script>
+    document.getElementById('quoteForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      emailjs.sendForm('service_jw9sh03', 'template-66fyo7j', this)
+        .then(function() {
+          alert('Email sent successfully!');
+        }, function(error) {
+          alert('Failed to send email: ' + error.text);
+        });
+    });
+  </script>
+</body>
+</html>
