@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Survey Quoter</title>
+</head>
+<body>
+  <h1>Survey Quoter</h1>
+  <form id="quote-form">
+    <label for="clientName">Name:</label>
+    <input type="text" id="clientName" name="clientName" required><br><br>
+
+    <label for="clientEmail">Email:</label>
+    <input type="email" id="clientEmail" name="clientEmail" required><br><br>
+
+    <label for="propertyValue">Property Value (£):</label>
+    <input type="number" id="propertyValue" name="propertyValue" required><br><br>
+
+    <button type="submit">Send to NABS</button>
+  </form>
+
+  <p id="response-message"></p>
+
+  <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      emailjs.init("6LBT_mSaHzf4Xqo_f");
+
+      const form = document.getElementById('quote-form');
+      const responseMessage = document.getElementById('response-message');
+
+      form.addEventListener('submit', function (event) {
+        event.preventDefault();
+
+        emailjs.send("service_jw9sh03", "template-66fyo7j", {
+          client_name: form.clientName.value,
+          client_email: form.clientEmail.value,
+          property_value: form.propertyValue.value
+        })
+        .then(function () {
+          responseMessage.textContent = "✅ Quote sent successfully!";
+          form.reset();
+        }, function (error) {
+          responseMessage.textContent = "❌ Failed to send quote: " + error.text;
+        });
+      });
+    });
+  </script>
+</body>
+</html>
